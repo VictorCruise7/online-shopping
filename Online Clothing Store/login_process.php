@@ -16,12 +16,15 @@ $UserType=$_POST['rdType'];
 
 if($UserType=="Admin")
 {
-  $sql = "select * from Admin_Master where UserName='".$UserName."' and Password='".$Password."'";
-  $result = mysqli_query($shop, $sql);
-  $records = mysqli_num_rows($result);
-  $row = mysqli_fetch_array($result);
+  // Use Prepared Statements for Security and PostgreSQL compatibility
+  // Note: PostgreSQL table names are case-sensitive if created with quotes
+  $sql = 'SELECT * FROM "Admin_Master" WHERE "UserName" = :username AND "Password" = :password';
+  $stmt = $shop->prepare($sql);
+  $stmt->execute(['username' => $UserName, 'password' => $Password]);
   
-  if ($records==0)
+  $row = $stmt->fetch(PDO::FETCH_ASSOC);
+  
+  if (!$row)
   {
     echo '<script type="text/javascript">alert("Wrong UserName or Password");window.location=\'login.php\';</script>';
   }
@@ -34,12 +37,13 @@ if($UserType=="Admin")
 }
 else if($UserType=="Customer")
 {
-  $sql = "select * from Customer_Registration where UserName='".$UserName."' and Password='".$Password."' ";
-  $result = mysqli_query($shop, $sql);
-  $records = mysqli_num_rows($result);
-  $row = mysqli_fetch_array($result);
+  $sql = 'SELECT * FROM "Customer_Registration" WHERE "UserName" = :username AND "Password" = :password';
+  $stmt = $shop->prepare($sql);
+  $stmt->execute(['username' => $UserName, 'password' => $Password]);
   
-  if ($records==0)
+  $row = $stmt->fetch(PDO::FETCH_ASSOC);
+  
+  if (!$row)
   {
     echo '<script type="text/javascript">alert("Wrong Username or Password");window.location=\'login.php\';</script>';
   }
@@ -51,7 +55,7 @@ else if($UserType=="Customer")
     header("location:index.php");
   } 
 }
-mysqli_close($shop);
+// PDO connection closes automatically when script ends
 ?>
 </body>
 </html>

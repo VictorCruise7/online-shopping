@@ -35,15 +35,16 @@
       </tr>
       <tr>
         <td><?php
+require_once('../Connections/shop.php'); // Use centralized database connection
+
 $Id=$_GET['AdminId'];
 
-$con = mysqli_connect("localhost","root", "", "shopping");
+// Use Prepared Statement for PostgreSQL
+$sql = 'SELECT * FROM "Admin_Master" WHERE "AdminId" = :id';
+$stmt = $shop->prepare($sql);
+$stmt->execute(['id' => $Id]);
 
-$sql = "select * from Admin_Master where AdminId=".$Id."";
-
-$result = mysqli_query($con, $sql);
-
-while($row = mysqli_fetch_array($result))
+while($row = $stmt->fetch(PDO::FETCH_ASSOC))
 {
 $Id=$row['AdminId'];
 $Name=$row['UserName'];
@@ -83,8 +84,7 @@ $Password=$row['Password'];
 </table>
             </form>
             <?php
-
-mysqli_close($con);
+// PDO connection closes automatically
 ?>
             <form method="post" action="UpdateUser.php">
               <table width="100%" border="0">

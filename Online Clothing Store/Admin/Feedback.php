@@ -29,14 +29,17 @@
          <th bgcolor="#BDE0A8" class="style3"><div align="left" class="style12">Delete</div></th>
       </tr>
       <?php
+// Use centralized connection
+require_once('../Connections/shop.php');
 
-$con = mysqli_connect("localhost","root", "", "shopping");
+// Use Prepared Statement for PostgreSQL
+$sql = 'SELECT "Feedback_Master"."FeedbackId", "Customer_Registration"."CustomerName", "Feedback_Master"."Feedback", "Feedback_Master"."Date" 
+        FROM "Feedback_Master", "Customer_Registration" 
+        WHERE "Feedback_Master"."CustomerId" = "Customer_Registration"."CustomerId"';
+$stmt = $shop->query($sql);
+$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-$sql = "select Feedback_Master.FeedbackId,Customer_Registration.CustomerName,Feedback_Master.Feedback,Feedback_Master.Date from Feedback_Master,Customer_Registration where Feedback_Master.CustomerId=Customer_Registration.CustomerId";
-
-$result = mysqli_query($con, $sql);
-
-while($row = mysqli_fetch_array($result))
+foreach ($result as $row)
 {
 $Id=$row['FeedbackId'];
 $Name=$row['CustomerName'];
@@ -54,14 +57,13 @@ $Date=$row['Date'];
       <?php
 }
 
-$records = mysqli_num_rows($result);
+$records = count($result);
 ?>
       <tr>
         <td colspan="5" class="style3"><div align="left" class="style12"><?php echo "Total ".$records." Records"; ?> </div></td>
       </tr>
       <?php
-
-mysqli_close($con);
+// PDO connection closes automatically
 ?>
     </table>
     <p align="justify">&nbsp;</p>

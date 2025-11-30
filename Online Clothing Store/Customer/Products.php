@@ -1,49 +1,24 @@
-<?php require_once('../Connections/shop.php'); ?>
-<?php require_once('Connections/shop.php'); ?>
-<?php
+<?php 
+require_once('../Connections/shop.php'); 
 session_start();
-if (!function_exists("GetSQLValueString")) {
-function GetSQLValueString($theValue, $theType, $theDefinedValue = "", $theNotDefinedValue = "") 
-{
-  $theValue = stripslashes($theValue);
 
-  switch ($theType) {
-    case "text":
-      $theValue = ($theValue != "") ? "'" . $theValue . "'" : "NULL";
-      break;    
-    case "long":
-    case "int":
-      $theValue = ($theValue != "") ? intval($theValue) : "NULL";
-      break;
-    case "double":
-      $theValue = ($theValue != "") ? "'" . doubleval($theValue) . "'" : "NULL";
-      break;
-    case "date":
-      $theValue = ($theValue != "") ? "'" . $theValue . "'" : "NULL";
-      break;
-    case "defined":
-      $theValue = ($theValue != "") ? $theDefinedValue : $theNotDefinedValue;
-      break;
-  }
-  return $theValue;
-}
-}
-
+// Fetch items for selected category using PDO prepared statement
 $colname_Recordset1 = "-1";
 if (isset($_GET['CategoryId'])) {
   $colname_Recordset1 = $_GET['CategoryId'];
 }
 
-$query_Recordset1 = sprintf("SELECT ItemId, ItemName, `Description`, `Size`, Image, Price, Discount, Total FROM item_master WHERE CategoryId = %s", GetSQLValueString($colname_Recordset1, "int"));
-$Recordset1 = mysqli_query($shop, $query_Recordset1) or die(mysqli_error());
-$row_Recordset1 = mysqli_fetch_assoc($Recordset1);
-$totalRows_Recordset1 = mysqli_num_rows($Recordset1);
+$query_Recordset1 = 'SELECT "ItemId", "ItemName", "Description", "Size", "Image", "Price", "Discount", "Total" FROM "Item_Master" WHERE "CategoryId" = :categoryId';
+$stmt1 = $shop->prepare($query_Recordset1);
+$stmt1->execute(['categoryId' => $colname_Recordset1]);
+$Recordset1 = $stmt1->fetchAll(PDO::FETCH_ASSOC);
+$totalRows_Recordset1 = count($Recordset1);
 
-
-$query_Recordset2 = "SELECT ItemId, ItemName, `Description`, `Size`, Image, Price, Discount, Total FROM item_master";
-$Recordset2 = mysqli_query($shop, $query_Recordset2) or die(mysqli_error());
-$row_Recordset2 = mysqli_fetch_assoc($Recordset2);
-$totalRows_Recordset2 = mysqli_num_rows($Recordset2);
+// Fetch all items using PDO
+$query_Recordset2 = 'SELECT "ItemId", "ItemName", "Description", "Size", "Image", "Price", "Discount", "Total" FROM "Item_Master"';
+$stmt2 = $shop->query($query_Recordset2);
+$Recordset2 = $stmt2->fetchAll(PDO::FETCH_ASSOC);
+$totalRows_Recordset2 = count($Recordset2);
 ?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -84,8 +59,8 @@ $totalRows_Recordset2 = mysqli_num_rows($Recordset2);
       <?php
 	  if(isset($_GET['CategoryId']))
 	  { 
-      if(mysqli_num_rows($Recordset1) > 0){
-        do 
+      if($totalRows_Recordset1 > 0){
+        foreach($Recordset1 as $row_Recordset1) 
 	  { 
 	  ?>
         <tr>
@@ -98,13 +73,13 @@ $totalRows_Recordset2 = mysqli_num_rows($Recordset2);
           <td><?php echo $row_Recordset1['Discount']; ?></td>
           <td><?php echo $row_Recordset1['Total']; ?></td>
            <td><a href="InsertCart.php?ItemId=<?php echo $row_Recordset1['ItemId']; ?>"><img src="img/shopping-cart.png"/></a></td><strong></strong>        </tr>
-        <?php } while ($row_Recordset1 = mysqli_fetch_assoc($Recordset1));
+        <?php }
 		}
   }
 		else
 		{ 
-      if(mysqli_num_rows($Recordset2) > 0){
-		do 
+      if($totalRows_Recordset2 > 0){
+		foreach($Recordset2 as $row_Recordset2) 
 	  { 
 	  ?>
         <tr>
@@ -118,7 +93,7 @@ $totalRows_Recordset2 = mysqli_num_rows($Recordset2);
           <td><?php echo $row_Recordset2['Total']; ?></td>
            <td><a href="InsertCart.php?ItemId=<?php echo $row_Recordset2['ItemId']; ?>"><img src="img/shopping-cart.png"/></a></td>
         </tr>
-        <?php } while ($row_Recordset2 = mysqli_fetch_assoc($Recordset2));
+        <?php }
 		}
   }
         
@@ -155,7 +130,5 @@ $totalRows_Recordset2 = mysqli_num_rows($Recordset2);
 </body>
 </html>
 <?php
-mysqli_free_result($Recordset1);
-
-mysqli_free_result($Recordset2);
+// PDO handles resource cleanup automatically
 ?>

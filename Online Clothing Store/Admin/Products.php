@@ -1,49 +1,23 @@
-<?php require_once('../Connections/shop.php'); ?>
-<?php require_once('../Connections/shop.php'); ?>
-<?php
-if (!function_exists("GetSQLValueString")) {
-function GetSQLValueString($theValue, $theType, $theDefinedValue = "", $theNotDefinedValue = "") 
-{
-  $theValue = stripslashes($theValue);
+<?php 
+require_once('../Connections/shop.php'); 
 
+// Fetch categories using PDO
+$query_Recordset1 = 'SELECT "CategoryId", "CategoryName" FROM "Category_Master"';
+$stmt1 = $shop->query($query_Recordset1);
+$Recordset1 = $stmt1->fetchAll(PDO::FETCH_ASSOC);
+$totalRows_Recordset1 = count($Recordset1);
 
-  switch ($theType) {
-    case "text":
-      $theValue = ($theValue != "") ? "'" . $theValue . "'" : "NULL";
-      break;    
-    case "long":
-    case "int":
-      $theValue = ($theValue != "") ? intval($theValue) : "NULL";
-      break;
-    case "double":
-      $theValue = ($theValue != "") ? "'" . doubleval($theValue) . "'" : "NULL";
-      break;
-    case "date":
-      $theValue = ($theValue != "") ? "'" . $theValue . "'" : "NULL";
-      break;
-    case "defined":
-      $theValue = ($theValue != "") ? $theDefinedValue : $theNotDefinedValue;
-      break;
-  }
-  return $theValue;
-}
-}
-
-
-$query_Recordset1 = "SELECT CategoryId, CategoryName FROM category_master";
-$Recordset1 = mysqli_query($shop, $query_Recordset1) or die(mysqli_error());
-$row_Recordset1 = mysqli_fetch_assoc($Recordset1);
-$totalRows_Recordset1 = mysqli_num_rows($Recordset1);
-
+// Fetch items for selected category using PDO prepared statement
 $colname_Recordset2 = "-1";
 if (isset($_GET['CategoryId'])) {
   $colname_Recordset2 = $_GET['CategoryId'];
 }
 
-$query_Recordset2 = sprintf("SELECT ItemId, ItemName, `Size`, Image, Price, Discount, Total FROM item_master WHERE CategoryId = %s", GetSQLValueString($colname_Recordset2, "int"));
-$Recordset2 = mysqli_query($shop, $query_Recordset2) or die(mysqli_error());
-$row_Recordset2 = mysqli_fetch_assoc($Recordset2);
-$totalRows_Recordset2 = mysqli_num_rows($Recordset2);
+$query_Recordset2 = 'SELECT "ItemId", "ItemName", "Size", "Image", "Price", "Discount", "Total" FROM "Item_Master" WHERE "CategoryId" = :categoryId';
+$stmt2 = $shop->prepare($query_Recordset2);
+$stmt2->execute(['categoryId' => $colname_Recordset2]);
+$Recordset2 = $stmt2->fetchAll(PDO::FETCH_ASSOC);
+$totalRows_Recordset2 = count($Recordset2);
 ?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -161,7 +135,7 @@ $totalRows_Recordset2 = mysqli_num_rows($Recordset2);
               <td bgcolor="#669900"><span class="style12">Discount</span></td>
               <td bgcolor="#669900"><span class="style12">Total</span></td>
             </tr>
-            <?php if(mysqli_num_rows($Recordset2) > 0) { do { ?>
+            <?php if($totalRows_Recordset2 > 0) { foreach($Recordset2 as $row_Recordset2) { ?>
               <tr>
                 <td><?php echo $row_Recordset2['ItemId']; ?></td>
                 <td><?php echo $row_Recordset2['ItemName']; ?></td>
@@ -171,7 +145,7 @@ $totalRows_Recordset2 = mysqli_num_rows($Recordset2);
                 <td><?php echo $row_Recordset2['Discount']; ?></td>
                 <td><?php echo $row_Recordset2['Total']; ?></td>
               </tr>
-              <?php } while ($row_Recordset2 = mysqli_fetch_assoc($Recordset2)); } ?>
+              <?php } } ?>
           </table></td>
       </tr>
     </table>
@@ -216,7 +190,5 @@ var sprytextfield5 = new Spry.Widget.ValidationTextField("sprytextfield5");
 </body>
 </html>
 <?php
-mysqli_free_result($Recordset1);
-
-mysqli_free_result($Recordset2);
+// PDO handles resource cleanup automatically
 ?>

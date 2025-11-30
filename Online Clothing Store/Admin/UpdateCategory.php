@@ -8,18 +8,28 @@
 
 <body>
 <?php
+require_once('../Connections/shop.php'); // Use centralized database connection
+
 $Id = $_POST['txtId'];
 $Name=$_POST['txtName'];
 $Desc=$_POST['txtDesc'];
 
-$con = mysqli_connect("localhost","root", "", "shopping");
+try {
+    // Use Prepared Statements for Security and PostgreSQL compatibility
+    $sql = 'UPDATE "Category_Master" SET "CategoryName" = :name, "Description" = :desc WHERE "CategoryId" = :id';
+    
+    $stmt = $shop->prepare($sql);
+    $stmt->execute([
+        'name' => $Name,
+        'desc' => $Desc,
+        'id' => $Id
+    ]);
 
-$sql = "Update Category_Master set CategoryName='".$Name."',Description='".$Desc."' where CategoryId=".$Id."";
-
-mysqli_query($con, $sql);
-
-mysqli_close($con);
-echo '<script type="text/javascript">alert("Category Updated Succesfully");window.location=\'Category.php\';</script>';
+    echo '<script type="text/javascript">alert("Category Updated Succesfully");window.location=\'Category.php\';</script>';
+    
+} catch (PDOException $e) {
+    echo '<script type="text/javascript">alert("Error: ' . addslashes($e->getMessage()) . '");window.location=\'Category.php\';</script>';
+}
 ?>
 </body>
 </html>

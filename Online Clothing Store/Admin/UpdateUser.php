@@ -8,18 +8,28 @@
 
 <body>
 <?php
+require_once('../Connections/shop.php'); // Use centralized database connection
+
 $Id = $_POST['txtUserId'];
 $Name=$_POST['txtUserName'];
 $Password=$_POST['txtPass'];
 
-$con = mysqli_connect("localhost","root", "", "shopping");
+try {
+    // Use Prepared Statements for Security and PostgreSQL compatibility
+    $sql = 'UPDATE "Admin_Master" SET "UserName" = :name, "Password" = :password WHERE "AdminId" = :id';
+    
+    $stmt = $shop->prepare($sql);
+    $stmt->execute([
+        'name' => $Name,
+        'password' => $Password,
+        'id' => $Id
+    ]);
 
-$sql = "Update Admin_Master set UserName='".$Name."',Password='".$Password."' where AdminId=".$Id."";
-
-mysqli_query($con, $sql);
-
-mysqli_close($con);
-echo '<script type="text/javascript">alert("User Updated Succesfully");window.location=\'User.php\';</script>';
+    echo '<script type="text/javascript">alert("User Updated Succesfully");window.location=\'User.php\';</script>';
+    
+} catch (PDOException $e) {
+    echo '<script type="text/javascript">alert("Error: ' . addslashes($e->getMessage()) . '");window.location=\'User.php\';</script>';
+}
 ?>
 </body>
 </html>

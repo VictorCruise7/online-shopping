@@ -1,41 +1,17 @@
-<?php require_once('../Connections/shop.php'); ?>
-<?php
-if (!function_exists("GetSQLValueString")) {
-function GetSQLValueString($theValue, $theType, $theDefinedValue = "", $theNotDefinedValue = "") 
-{
-  $theValue = stripslashes($theValue);
-
-  switch ($theType) {
-    case "text":
-      $theValue = ($theValue != "") ? "'" . $theValue . "'" : "NULL";
-      break;    
-    case "long":
-    case "int":
-      $theValue = ($theValue != "") ? intval($theValue) : "NULL";
-      break;
-    case "double":
-      $theValue = ($theValue != "") ? "'" . doubleval($theValue) . "'" : "NULL";
-      break;
-    case "date":
-      $theValue = ($theValue != "") ? "'" . $theValue . "'" : "NULL";
-      break;
-    case "defined":
-      $theValue = ($theValue != "") ? $theDefinedValue : $theNotDefinedValue;
-      break;
-  }
-  return $theValue;
-}
-}
+<?php 
+require_once('../Connections/shop.php'); 
 
 $colname_Recordset1 = "-1";
 if (isset($_GET['CustomerId'])) {
   $colname_Recordset1 = $_GET['CustomerId'];
 }
 
-$query_Recordset1 = sprintf("SELECT CustomerName, Address, City, Email, Mobile, Gender FROM customer_registration WHERE CustomerId = %s", GetSQLValueString($colname_Recordset1, "int"));
-$Recordset1 = mysqli_query($shop, $query_Recordset1) or die(mysql_error());
-$row_Recordset1 = mysqli_fetch_assoc($Recordset1);
-$totalRows_Recordset1 = mysqli_num_rows($Recordset1);
+// Use Prepared Statement for PostgreSQL
+$query_Recordset1 = 'SELECT "CustomerName", "Address", "City", "Email", "Mobile", "Gender" FROM "Customer_Registration" WHERE "CustomerId" = :customerId';
+$stmt1 = $shop->prepare($query_Recordset1);
+$stmt1->execute(['customerId' => $colname_Recordset1]);
+$Recordset1 = $stmt1->fetchAll(PDO::FETCH_ASSOC);
+$totalRows_Recordset1 = count($Recordset1);
 ?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -72,7 +48,7 @@ $totalRows_Recordset1 = mysqli_num_rows($Recordset1);
        
         
       </tr>
-      <?php do { ?>
+      <?php foreach($Recordset1 as $row_Recordset1) { ?>
         <tr>
          <td bgcolor="#BDE0A8"><strong>CustomerName</strong></td> 
         <td bgcolor="#BDE0A8"><?php echo $row_Recordset1['CustomerName']; ?></td></tr>
@@ -87,7 +63,7 @@ $totalRows_Recordset1 = mysqli_num_rows($Recordset1);
         <tr> <td bgcolor="#E3F2DB"><strong>Gender</strong></td> 
         <td bgcolor="#E3F2DB"><?php echo $row_Recordset1['Gender']; ?></td>
         </tr>
-        <?php } while ($row_Recordset1 = mysqli_fetch_assoc($Recordset1)); ?>
+        <?php } ?>
     </table>
     <table width="100%" border="0" cellspacing="3" cellpadding="3">
       <tr>
@@ -119,5 +95,5 @@ $totalRows_Recordset1 = mysqli_num_rows($Recordset1);
 </body>
 </html>
 <?php
-mysqli_free_result($Recordset1);
+// PDO handles resource cleanup automatically
 ?>

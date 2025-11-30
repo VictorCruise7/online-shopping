@@ -7,6 +7,7 @@
 
 <body>
 <?php
+    require_once('../Connections/shop.php'); // Use centralized database connection
 
 	$cmbCategory=$_GET['CategoryId'];
 	$txtName=$_POST['txtName'];
@@ -19,15 +20,28 @@
 	$path1 = $_FILES["txtFile"]["name"];
 	move_uploaded_file($_FILES["txtFile"]["tmp_name"],"../Products/"  .$_FILES["txtFile"]["name"]);
 	
-	$con = mysqli_connect ("localhost","root", "", "shopping");
-	
-	$sql = "insert into Item_Master	(CategoryId,ItemName,Description,Size,Image,Price,Discount,Total) values(".$cmbCategory.",'".$txtName."','".$txtDesc."','".$txtSize."','".$path1."',".$txtPrice.",".$txtDiscount.",".$txtFinal.")";
-	
-	mysqli_query ($con, $sql);
+    try {
+        // Use Prepared Statements for Security and PostgreSQL compatibility
+        $sql = 'INSERT INTO "Item_Master" ("CategoryId", "ItemName", "Description", "Size", "Image", "Price", "Discount", "Total") 
+                VALUES (:categoryId, :itemName, :description, :size, :image, :price, :discount, :total)';
+        
+        $stmt = $shop->prepare($sql);
+        $stmt->execute([
+            'categoryId' => $cmbCategory,
+            'itemName' => $txtName,
+            'description' => $txtDesc,
+            'size' => $txtSize,
+            'image' => $path1,
+            'price' => $txtPrice,
+            'discount' => $txtDiscount,
+            'total' => $txtFinal
+        ]);
 
-	mysqli_close ($con);
-	header("location:Products.php?CategoryId=".$cmbCategory."")
-
+        header("location:Products.php?CategoryId=".$cmbCategory."");
+        
+    } catch (PDOException $e) {
+        echo '<script type="text/javascript">alert("Error: ' . addslashes($e->getMessage()) . '");window.location=\'Products.php?CategoryId='.$cmbCategory.'\';</script>';
+    }
 ?>
 </body>
 </html>

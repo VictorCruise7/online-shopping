@@ -8,18 +8,22 @@
 
 <body>
 <?php
+    require_once('../Connections/shop.php'); // Use centralized database connection
 
 	$Id=$_GET['FeedbackId'];
 
-	$con = mysqli_connect ("localhost","root", "", "shopping");
+    try {
+        // Use Prepared Statements for Security and PostgreSQL compatibility
+        $sql = 'DELETE FROM "Feedback_Master" WHERE "FeedbackId" = :id';
+        
+        $stmt = $shop->prepare($sql);
+        $stmt->execute(['id' => $Id]);
 
-	$sql = "delete from Feedback_Master where FeedbackId='".$Id."'";
-
-	mysqli_query ($con, $sql);
-	
-	mysqli_close ($con);
-	echo '<script type="text/javascript">alert("Feedback Deleted Succesfully");window.location=\'Feedback.php\';</script>';
-
+        echo '<script type="text/javascript">alert("Feedback Deleted Succesfully");window.location=\'Feedback.php\';</script>';
+        
+    } catch (PDOException $e) {
+        echo '<script type="text/javascript">alert("Error: ' . addslashes($e->getMessage()) . '");window.location=\'Feedback.php\';</script>';
+    }
 ?>
 </body>
 </html>

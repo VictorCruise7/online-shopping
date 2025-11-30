@@ -35,16 +35,17 @@
       <?php
 	  session_start();
 
-$con = mysqli_connect("localhost","root", "", "shopping");
+// Use centralized connection
+require_once('../Connections/shop.php');
 
+// Use Prepared Statement for PostgreSQL
+$sql = 'SELECT "Customer_Registration"."CustomerId", "Customer_Registration"."CustomerName", "Shopping_Cart_Final"."ItemName", "Shopping_Cart_Final"."Quantity", "Shopping_Cart_Final"."Price", "Shopping_Cart_Final"."Total" 
+FROM "Customer_Registration", "Shopping_Cart_Final"
+WHERE "Customer_Registration"."CustomerId" = "Shopping_Cart_Final"."CustomerId"';
+$stmt = $shop->query($sql);
+$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-$sql = "SELECT customer_registration.CustomerId, customer_registration.CustomerName, shopping_cart_final.ItemName, shopping_cart_final.Quantity, shopping_cart_final.Price, shopping_cart_final.Total 
-FROM customer_registration, shopping_cart_final
-WHERE customer_registration.CustomerId=shopping_cart_final.CustomerId ";
-
-$result = mysqli_query($con, $sql);
-
-while($row = mysqli_fetch_array($result))
+foreach ($result as $row)
 {
 $Id=$row['CustomerId'];
 $CustomerName=$row['CustomerName'];
@@ -67,11 +68,10 @@ $Total=$row['Total'];
       <?php
 }
 
-$records = mysqli_num_rows($result);
+$records = count($result);
 ?>
       <?php
-
-mysqli_close($con);
+// PDO connection closes automatically
 ?>
     </table>
     <p align="justify">&nbsp;</p>

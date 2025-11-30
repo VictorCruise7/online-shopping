@@ -8,42 +8,52 @@
 <body>
 <?php
 	session_start();
+	require_once('../Connections/shop.php'); // Use centralized database connection
+	
 	$Id=$_GET['Id'];
 
-$con = mysqli_connect("localhost","root", "", "shopping");
+	// Use Prepared Statement for PostgreSQL to fetch item details
+	$sql = 'SELECT * FROM "Item_Master" WHERE "ItemId" = :id';
+	$stmt = $shop->prepare($sql);
+	$stmt->execute(['id' => $Id]);
 
-$sql = "select * from Item_Master where ItemId=".$Id."";
-
-$result = mysqli_query($con, $sql);
-
-while($row = mysqli_fetch_array($result))
-{
-$Id=$row['ItemId'];
-$Name=$row['ItemName'];
-$Description=$row['Description'];
-$Size=$row['Size'];
-$Price=$row['Price'];
-$Discount=$row['Discount'];
-$Total=$row['Total'];
-$Image=$row['Image'];
-}
+	$row = $stmt->fetch(PDO::FETCH_ASSOC);
+	if($row) {
+		$Id=$row['ItemId'];
+		$Name=$row['ItemName'];
+		$Description=$row['Description'];
+		$Size=$row['Size'];
+		$Price=$row['Price'];
+		$Discount=$row['Discount'];
+		$Total=$row['Total'];
+		$Image=$row['Image'];
+	}
+	
 	$Qty=$_POST['txtQty'];
 	$CID=$_SESSION['ID'];
 	$ODate= date('y/m/d');
 	$Net=$Total*$Qty;
-	mysqli_close ($con);
 	
-	
-	
-	$con = mysqli_connect ("localhost","root", "", "shopping");
+	try {
+		// Use Prepared Statements for Security and PostgreSQL compatibility
+		$sql = 'INSERT INTO "Shopping_Cart" ("CustomerId", "ItemName", "Quantity", "Price", "Total", "OrderDate") 
+				VALUES (:customerId, :itemName, :quantity, :price, :total, :orderDate)';
+		
+		$stmt = $shop->prepare($sql);
+		$stmt->execute([
+			'customerId' => $CID,
+			'itemName' => $Name,
+			'quantity' => $Qty,
+			'price' => $Total,
+			'total' => $Net,
+			'orderDate' => $ODate
+		]);
 
-	$sql = "insert into Shopping_Cart(CustomerId,ItemName,Quantity,Price,Total,OrderDate) values(".$CID.",'".$Name."',".$Qty.",".$Total.",".$Net.",".$ODate.")";
-
-	mysqli_query ($con, $sql);
-	
-	mysqli_close ($con);
-	echo '<script type="text/javascript">alert("Item Added To the cart");window.location=\'Products.php\';</script>';
-
+		echo '<script type="text/javascript">alert("Item Added To the cart");window.location=\'Products.php\';</script>';
+		
+	} catch (PDOException $e) {
+		echo '<script type="text/javascript">alert("Error: ' . addslashes($e->getMessage()) . '");window.location=\'Products.php\';</script>';
+	}
 ?>
 </body>
 </html>

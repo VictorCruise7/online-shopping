@@ -7,6 +7,7 @@
 
 <body>
 <?php
+    require_once('Connections/shop.php'); // Use centralized database connection
 
 	$Name=$_POST['txtName'];
 	$Address=$_POST['txtAddress'];
@@ -20,20 +21,33 @@
 	$UserName=$_POST['txtUserName'];
 	$Password=$_POST['txtPassword'];
 	
-	
-	
-	
+    try {
+        // Use Prepared Statements for Security and PostgreSQL compatibility
+        $sql = 'INSERT INTO "Customer_Registration" ("CustomerName", "Address", "City", "Email", "Mobile", "Gender", "BirthDate", "UserName", "Password") VALUES (:name, :address, :city, :email, :mobile, :gender, :birthdate, :username, :password)';
+        
+        $stmt = $shop->prepare($sql);
+        $stmt->execute([
+            'name' => $Name,
+            'address' => $Address,
+            'city' => $City,
+            'email' => $Email,
+            'mobile' => $Mobile,
+            'gender' => $Gender,
+            'birthdate' => $BirthDate,
+            'username' => $UserName,
+            'password' => $Password
+        ]);
 
-	$con = mysqli_connect ("localhost","root", "", "shopping");
-
-	$sql = "insert into customer_registration(CustomerName,Address,City,Email,Mobile,Gender,BirthDate,UserName,Password) values('".$Name."','".$Address."','".$City."','".$Email."',".$Mobile.",'".$Gender."','".$BirthDate."','".$UserName."','".$Password."')";
-
-	mysqli_query ($con, $sql);
-
-	mysqli_close ($con);
-	
-	echo '<script type="text/javascript">alert("Registration Completed Succesfully");window.location=\'index.php\';</script>';
-
+        echo '<script type="text/javascript">alert("Registration Completed Succesfully");window.location=\'index.php\';</script>';
+        
+    } catch (PDOException $e) {
+        // Handle duplicate entry error (PostgreSQL error code 23505)
+        if ($e->getCode() == '23505') {
+             echo '<script type="text/javascript">alert("Username or Email already exists!");window.location=\'Register.php\';</script>';
+        } else {
+             echo '<script type="text/javascript">alert("Error: ' . addslashes($e->getMessage()) . '");window.location=\'Register.php\';</script>';
+        }
+    }
 ?>
 </body>
 </html>

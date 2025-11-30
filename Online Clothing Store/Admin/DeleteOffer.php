@@ -7,18 +7,22 @@
 
 <body>
 <?php
+    require_once('../Connections/shop.php'); // Use centralized database connection
 
 	$Id=$_GET['OfferId'];
 
-	$con = mysqli_connect ("localhost","root", "", "shopping");
+    try {
+        // Use Prepared Statements for Security and PostgreSQL compatibility
+        $sql = 'DELETE FROM "Offer_Master" WHERE "OfferId" = :id';
+        
+        $stmt = $shop->prepare($sql);
+        $stmt->execute(['id' => $Id]);
 
-	$sql = "delete from Offer_Master where OfferId='".$Id."'";
-	
-	mysqli_query ($con, $sql);
-
-	mysqli_close ($con);
-	echo '<script type="text/javascript">alert("Offer Deleted Succesfully");window.location=\'Offers.php\';</script>';
-
+        echo '<script type="text/javascript">alert("Offer Deleted Succesfully");window.location=\'Offers.php\';</script>';
+        
+    } catch (PDOException $e) {
+        echo '<script type="text/javascript">alert("Error: ' . addslashes($e->getMessage()) . '");window.location=\'Offers.php\';</script>';
+    }
 ?>
 </body>
 </html>

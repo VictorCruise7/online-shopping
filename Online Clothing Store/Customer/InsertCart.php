@@ -28,24 +28,25 @@ session_start();
   <div id="content">
     <h2><span style="color:#003300"> Welcome  <?php echo $_SESSION['Name'];?></span></h2>
     <?php
+require_once('../Connections/shop.php'); // Use centralized database connection
+
 $Id=$_GET['ItemId'];
 
-$con = mysqli_connect("localhost","root", "", "shopping");
+// Use Prepared Statement for PostgreSQL
+$sql = 'SELECT * FROM "Item_Master" WHERE "ItemId" = :id';
+$stmt = $shop->prepare($sql);
+$stmt->execute(['id' => $Id]);
 
-$sql = "select * from Item_Master where ItemId=".$Id."";
-
-$result = mysqli_query($con, $sql);
-
-while($row = mysqli_fetch_array($result))
-{
-$Id=$row['ItemId'];
-$Name=$row['ItemName'];
-$Description=$row['Description'];
-$Size=$row['Size'];
-$Price=$row['Price'];
-$Discount=$row['Discount'];
-$Total=$row['Total'];
-$Image=$row['Image'];
+$row = $stmt->fetch(PDO::FETCH_ASSOC);
+if($row) {
+    $Id=$row['ItemId'];
+    $Name=$row['ItemName'];
+    $Description=$row['Description'];
+    $Size=$row['Size'];
+    $Price=$row['Price'];
+    $Discount=$row['Discount'];
+    $Total=$row['Total'];
+    $Image=$row['Image'];
 }
 ?>
     <form id="form1" name="form1" method="post" action="Insert.php?Id=<?php echo $Id;?>">

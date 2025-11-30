@@ -8,18 +8,22 @@
 
 <body>
 <?php
+    require_once('../Connections/shop.php'); // Use centralized database connection
 
 	$Id=$_GET['CatId'];
 
-	$con = mysqli_connect ("localhost","root", "", "shopping");
+    try {
+        // Use Prepared Statements for Security and PostgreSQL compatibility
+        $sql = 'DELETE FROM "Category_Master" WHERE "CategoryId" = :id';
+        
+        $stmt = $shop->prepare($sql);
+        $stmt->execute(['id' => $Id]);
 
-	$sql = "delete from Category_Master where CategoryId='".$Id."'";
-
-	mysqli_query ($con, $sql);
-
-	mysqli_close ($con);
-	echo '<script type="text/javascript">alert("Category Deleted Succesfully");window.location=\'Category.php\';</script>';
-
+        echo '<script type="text/javascript">alert("Category Deleted Succesfully");window.location=\'Category.php\';</script>';
+        
+    } catch (PDOException $e) {
+        echo '<script type="text/javascript">alert("Error: ' . addslashes($e->getMessage()) . '");window.location=\'Category.php\';</script>';
+    }
 ?>
 </body>
 </html>

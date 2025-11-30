@@ -400,16 +400,16 @@ function ds_onclick(d, m, y) {
             <th bgcolor="#BDE0A8" class="style3"><div align="left" class="style9 style5"><strong>Valid Upto</strong></div></th>
             <th bgcolor="#BDE0A8" class="style3"><div align="left" class="style12">Delete</div></th>
           </tr>
-          <?php
+                    <?php
+// Use centralized connection
+require_once('../Connections/shop.php');
 
-$con = mysqli_connect("localhost","root", "", "shopping");
+// Use Prepared Statement for PostgreSQL
+$sql = 'SELECT * FROM "Offer_Master"';
+$stmt = $shop->query($sql);
+$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-
-$sql = "select * from Offer_Master";
-
-$result = mysqli_query($con, $sql);
-
-while($row = mysqli_fetch_array($result))
+foreach ($result as $row)
 {
 $Id=$row['OfferId'];
 $Offer=$row['Offer'];
@@ -426,14 +426,13 @@ $Valid=$row['Valid'];
           <?php
 }
 // Retrieve Number of records returned
-$records = mysqli_num_rows($result);
+$records = count($result);
 ?>
           <tr>
             <td colspan="5" class="style3"><div align="left" class="style12"><?php echo "Total ".$records." Records"; ?> </div></td>
           </tr>
           <?php
-// Close the connection
-mysqli_close($con);
+// PDO connection closes automatically
 ?>
         </table></td>
       </tr>

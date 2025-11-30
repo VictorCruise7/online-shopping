@@ -8,18 +8,22 @@
 
 <body>
 <?php
+    require_once('../Connections/shop.php'); // Use centralized database connection
 
 	$Id=$_GET['AdminId'];
 	
-	$con = mysqli_connect ("localhost","root", "", "shopping");
-	
-	$sql = "delete from Admin_Master where AdminId='".$Id."'";
+    try {
+        // Use Prepared Statements for Security and PostgreSQL compatibility
+        $sql = 'DELETE FROM "Admin_Master" WHERE "AdminId" = :id';
+        
+        $stmt = $shop->prepare($sql);
+        $stmt->execute(['id' => $Id]);
 
-	mysqli_query ($con, $sql);
-
-	mysqli_close ($con);
-	echo '<script type="text/javascript">alert("User Deleted Succesfully");window.location=\'User.php\';</script>';
-
+        echo '<script type="text/javascript">alert("User Deleted Succesfully");window.location=\'User.php\';</script>';
+        
+    } catch (PDOException $e) {
+        echo '<script type="text/javascript">alert("Error: ' . addslashes($e->getMessage()) . '");window.location=\'User.php\';</script>';
+    }
 ?>
 </body>
 </html>

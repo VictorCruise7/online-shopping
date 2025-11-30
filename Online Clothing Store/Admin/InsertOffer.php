@@ -7,24 +7,28 @@
 
 <body>
 <?php
+    require_once('../Connections/shop.php'); // Use centralized database connection
 
 	$Valid=$_POST['txtDate'];
-	
 	$txtName=$_POST['txtName'];
-	
 	$txtDetail=$_POST['txtDetail'];
 	
+    try {
+        // Use Prepared Statements for Security and PostgreSQL compatibility
+        $sql = 'INSERT INTO "Offer_Master" ("Offer", "Detail", "Valid") VALUES (:offer, :detail, :valid)';
+        
+        $stmt = $shop->prepare($sql);
+        $stmt->execute([
+            'offer' => $txtName,
+            'detail' => $txtDetail,
+            'valid' => $Valid
+        ]);
 
-	$con = mysqli_connect ("localhost","root", "", "shopping");
-
-	$sql = "insert into Offer_master(Offer,Detail,Valid) values('".$txtName."','".$txtDetail."','".$Valid."')";
-
-	mysqli_query ($con, $sql);
-
-	mysqli_close ($con);
-	
-	echo '<script type="text/javascript">alert("Offer Created Succesfully");window.location=\'Offers.php\';</script>';
-
+        echo '<script type="text/javascript">alert("Offer Created Succesfully");window.location=\'Offers.php\';</script>';
+        
+    } catch (PDOException $e) {
+        echo '<script type="text/javascript">alert("Error: ' . addslashes($e->getMessage()) . '");window.location=\'Offers.php\';</script>';
+    }
 ?>
 </body>
 </html>

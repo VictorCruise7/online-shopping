@@ -8,21 +8,29 @@
 
 <body>
 <?php
+    require_once('../Connections/shop.php'); // Use centralized database connection
 
 	$Name=$_POST['txtName'];
 	$Desc=$_POST['txtDesc'];
 	$path1 = $_FILES["txtFile"]["name"];
 	move_uploaded_file($_FILES["txtFile"]["tmp_name"],"../Products/"  .$_FILES["txtFile"]["name"]);
 	
-	$con = mysqli_connect ("localhost","root", "", "shopping");
-	
-	$sql = "insert into Category_Master	(CategoryName,Description,Image) values('".$Name."','".$Desc."','".$path1."')";
+    try {
+        // Use Prepared Statements for Security and PostgreSQL compatibility
+        $sql = 'INSERT INTO "Category_Master" ("CategoryName", "Description", "Image") VALUES (:name, :desc, :image)';
+        
+        $stmt = $shop->prepare($sql);
+        $stmt->execute([
+            'name' => $Name,
+            'desc' => $Desc,
+            'image' => $path1
+        ]);
 
-	mysqli_query ($con, $sql);
-
-	mysqli_close ($con);
-	echo '<script type="text/javascript">alert("Category Inserted Succesfully");window.location=\'Category.php\';</script>';
-
+        echo '<script type="text/javascript">alert("Category Inserted Succesfully");window.location=\'Category.php\';</script>';
+        
+    } catch (PDOException $e) {
+        echo '<script type="text/javascript">alert("Error: ' . addslashes($e->getMessage()) . '");window.location=\'Category.php\';</script>';
+    }
 ?>
 </body>
 </html>

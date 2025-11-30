@@ -35,16 +35,16 @@
       </tr>
       <tr>
         <td><?php
+require_once('../Connections/shop.php'); // Use centralized database connection
+
 $Id=$_GET['CatId'];
 
-$con = mysqli_connect("localhost","root", "", "shopping");
+// Use Prepared Statement for PostgreSQL
+$sql = 'SELECT * FROM "Category_Master" WHERE "CategoryId" = :id';
+$stmt = $shop->prepare($sql);
+$stmt->execute(['id' => $Id]);
 
-
-$sql = "select * from Category_Master where CategoryId=".$Id."";
-
-$result = mysqli_query($con, $sql);
-
-while($row = mysqli_fetch_array($result))
+while($row = $stmt->fetch(PDO::FETCH_ASSOC))
 {
 $Id=$row['CategoryId'];
 $Name=$row['CategoryName'];
@@ -85,8 +85,7 @@ $Description=$row['Description'];
 </table>
             </form>
             <?php
-// Close the connection
-mysqli_close($con);
+// PDO connection closes automatically
 ?>
             </td>
       </tr>

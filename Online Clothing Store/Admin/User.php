@@ -72,14 +72,15 @@
               <th bgcolor="#BDE0A8" class="style3"><div align="left" class="style12">Delete</div></th>
             </tr>
             <?php
+// Use centralized connection
+require_once('../Connections/shop.php');
 
-$con = mysqli_connect("localhost","root", "", "shopping");
+// Use Prepared Statement for PostgreSQL
+$sql = 'SELECT * FROM "Admin_Master"';
+$stmt = $shop->query($sql);
+$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-$sql = "select * from admin_master";
-
-$result = mysqli_query($con, $sql);
-
-while($row = mysqli_fetch_array($result))
+foreach ($result as $row)
 {
 $Id=$row['AdminId'];
 $UserName=$row['UserName'];
@@ -94,14 +95,13 @@ $UserName=$row['UserName'];
             <?php
 }
 // Retrieve Number of records returned
-$records = mysqli_num_rows($result);
+$records = count($result);
 ?>
             <tr>
               <td colspan="4" class="style3"><div align="left" class="style12"><?php echo "Total ".$records." Records"; ?> </div></td>
             </tr>
             <?php
-// Close the connection
-mysqli_close($con);
+// PDO connection closes automatically
 ?>
         </table></td>
       </tr>
