@@ -32,6 +32,7 @@ if($UserType=="Admin")
   {
     $_SESSION['UserType'] = 'Admin';
     $_SESSION['UserName'] = $UserName;
+    $_SESSION['LAST_ACTIVITY'] = time(); // Initialize last activity
     header("location:index.php");
   } 
 }
@@ -52,6 +53,7 @@ else if($UserType=="Customer")
     $_SESSION['ID']=$row['CustomerId'];
     $_SESSION['Name']=$row['CustomerName'];
     $_SESSION['UserType'] = 'Customer';
+    $_SESSION['LAST_ACTIVITY'] = time(); // Initialize last activity
     header("location:index.php");
   } 
 }
